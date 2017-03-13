@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildPathDefined>C:\Windows\Microsoft.NET\Framework64\v4.0.30319</MSBuildPathDefined>
+  </PropertyGroup>
+  <Choose>
+    <When Condition="$(MSBuildToolsVersion) != '12.0'">
+      <PropertyGroup>
+        <OverrideVSVersion>11.0</OverrideVSVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <OverrideVSVersion>$(MSBuildToolsVersion)</OverrideVSVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <!-- Build property -->
+  <PropertyGroup>
+    <ProjectFileProxy>Proxy.csproj</ProjectFileProxy>
+    <ProjectFileDAProxy>CF.VRent.DataAccessProxy.csproj</ProjectFileDAProxy>
+    <ProjectFileScheduleJob>DeductionScheduleJob.csproj</ProjectFileScheduleJob>
+    <ProjectFileScheduleJobListener>DeductionScheduleJobListener.csproj</ProjectFileScheduleJobListener>
+    <!--<ProjectFileUPProxy>UnionPayInformProxy.csproj</ProjectFileUPProxy>-->
+
+    <ProjectPathProxy>..\Proxy\</ProjectPathProxy>
+    <ProjectPathDAProxy>..\CF.VRent.DataAccessProxy\</ProjectPathDAProxy>
+    <ProjectPathScheduleJob>..\PaymentScheduleJob\</ProjectPathScheduleJob>
+    <ProjectPathScheduleJobListener>..\DeductionScheduleJobListener\</ProjectPathScheduleJobListener>
+    <!--<ProjectPathUPProxy>..\UnionPayInformProxy\</ProjectPathUPProxy>-->
+
+    <EmailPackagePath>$(ProjectPathProxy)EmailTemplate\</EmailPackagePath>
+    <UPCertsTestPath>$(ProjectPathProxy)CertTest\</UPCertsTestPath>
+    <UPCertsPath>$(ProjectPathProxy)Cert\</UPCertsPath>
+    
+  </PropertyGroup>
+  <!-- Deploy property-->
+  <PropertyGroup>
+    <DeployCommandBat>VRentDeploy.bat</DeployCommandBat>
+    <DeployCommandProxy>$(DeployCommandBat) "$(DeployIisAppPathProxy)" $(AuthenticationParam)</DeployCommandProxy>
+    <DeployCommandDAProxy>$(DeployCommandBat) "$(DeployIisAppPathDAProxy)" $(AuthenticationParam)</DeployCommandDAProxy>
+    <DeployCommandUPProxy>$(DeployCommandBat) "$(DeployIisAppPathUPProxy)" $(AuthenticationParam)</DeployCommandUPProxy>
+    <DeployCommandSuffix>.deploy.cmd</DeployCommandSuffix>
+    <DeployParametersSuffix>.SetParameters.xml</DeployParametersSuffix>
+
+    <InstallScheduleJob>ReInstallScheduleJob.bat</InstallScheduleJob>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <BackupCommandBat>VRentBackup.bat</BackupCommandBat>
+    <BackupCommandSuffix>.zip</BackupCommandSuffix>
+    <BackupCommandProxy>$(BackupCommandBat) "$(DeployIisAppPathProxy)" "$(BackupRootProxy)$(DeployIisAppPathProxy)\$(PackageProxyZip)$(TaskTime)$(BackupCommandSuffix)"</BackupCommandProxy>
+    <BackupCommandDAProxy>$(BackupCommandBat) "$(DeployIisAppPathDAProxy)" "$(BackupRootDAProxy)$(DeployIisAppPathDAProxy)\$(PackageDAProxyZip)$(TaskTime)$(BackupCommandSuffix)"</BackupCommandDAProxy>
+    <BackupCommandUPProxy>$(BackupCommandBat) "$(DeployIisAppPathUPProxy)" "$(BackupRootUPProxy)$(DeployIisAppPathUPProxy)\$(PackageUPProxyZip)$(TaskTime)$(BackupCommandSuffix)"</BackupCommandUPProxy>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageLocationRootProxy>$(PackageLocationRoot)Proxy\</PackageLocationRootProxy>
+    <PackageLocationRootDAProxy>$(PackageLocationRoot)DataAccessProxy\</PackageLocationRootDAProxy>
+    <PackageLocationRootScheduleJob>$(PackageLocationRoot)ScheduleJob\</PackageLocationRootScheduleJob>
+    <!--<PackageLocationRootUPProxy>$(PackageLocationRoot)UnionPayInformProxy\</PackageLocationRootUPProxy>-->
+
+    <PackageProxyZip>proxy_api</PackageProxyZip>
+    <PackageDAProxyZip>dataaccessproxy_api</PackageDAProxyZip>
+    <PackageUPProxyZip>listener_api</PackageUPProxyZip>
+  </PropertyGroup>
+</Project>

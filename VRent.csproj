@@ -1,0 +1,42 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0" DefaultTargets="Deploy">
+  <Import Project="Targets\InitCommonProperties.targets"/>
+  <!-- Authentication property-->
+  <!-- If RemoteComputer is empty, the process of deploymment will be under local computer -->
+  <PropertyGroup>
+    <User></User>
+    <Pwd></Pwd>
+    <RemoteComputer></RemoteComputer>
+    <AuthenticationParam Condition="$(RemoteComputer) != '' And $(User) != '' And $(Pwd) != ''">"$(RemoteComputer)" "$(User)" "$(Pwd)"</AuthenticationParam>
+  </PropertyGroup>
+  <!-- IIS app path property-->
+  <PropertyGroup>
+    <IisProxySiteName>\api</IisProxySiteName>
+    <IisDAProxySiteName>\dataAccessProxy</IisDAProxySiteName>
+    <IisUPProxySiteName>\upl_VRent_New</IisUPProxySiteName>
+    <DeployIisAppPathProxy>VRent_New$(IisProxySiteName)</DeployIisAppPathProxy>
+    <DeployIisAppPathDAProxy>VRent_New_DataAccessProxy</DeployIisAppPathDAProxy>
+    <DeployIisAppPathUPProxy>VRent_Staging$(IisUPProxySiteName)</DeployIisAppPathUPProxy>
+  </PropertyGroup>
+  <!-- Package Property-->
+  <PropertyGroup>
+    <PackageLocationRoot>C:\VRentDeploy_New\Publish\$(TaskTime)\</PackageLocationRoot>  
+  </PropertyGroup>
+  <!-- Backup property-->
+  <PropertyGroup>
+    <BackupRootProxy>C:\VRentBakup_New\Proxy\</BackupRootProxy>
+    <BackupRootDAProxy>C:\VRentBakup_New\DataAccessProxy\</BackupRootDAProxy>
+    <BackupRootUPProxy>C:\VRentBakup_New\UniponPayInformProxy\</BackupRootUPProxy>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ScheduleJobPath>D:\VRent\VRent_New\scheduleJob\</ScheduleJobPath>
+    <ScheduleJobServiceName>"VRent Payment Deduction Schedule Job"</ScheduleJobServiceName>
+    <DataAccessServiceHost>localhost:9998</DataAccessServiceHost>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LogFileSuffix>New</LogFileSuffix>
+    <DataBaseName>VRentBooking_Dev9000</DataBaseName>
+  </PropertyGroup>
+
+  <Import Project="Targets\CommonProperties.targets"/>
+  <Import Project="Targets\CommonItems.targets"/>
+</Project>

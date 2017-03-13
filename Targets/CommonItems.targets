@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Config items -->
+  <ItemGroup>
+    <EmailConfig Include="Email">
+      <SendMailHost></SendMailHost>
+      <SendMailFrom>Tester@mcon-group.com</SendMailFrom>
+      <SendMailFromPwd>123</SendMailFromPwd>
+      <SendMailWay>true</SendMailWay>
+
+      <ServiceCenterEmail1>XXX@mcon-group.com</ServiceCenterEmail1>
+      <ServiceCenterEmail2></ServiceCenterEmail2>
+      <ServiceCenterEmail3></ServiceCenterEmail3>
+
+      <EmailTemplatePackage>C:\Project\EmailTemplate\</EmailTemplatePackage>
+
+      <TestUser1></TestUser1>
+      <TestUser2></TestUser2>
+      <TestUser3></TestUser3>
+
+      <VRentManagerEmail1>Jack.Sun@mcon-group.com</VRentManagerEmail1>
+      <VRentManagerEmail2>Leona.Lin@mcon-group.com</VRentManagerEmail2>
+      <VRentManagerEmail3>jaime.chen@mcon-group.com</VRentManagerEmail3>
+
+      <DebitNoteEmail1>Jack.Sun@mcon-group.com</DebitNoteEmail1>
+      <DebitNoteEmail2>jaime.chen@mcon-group.com</DebitNoteEmail2>
+
+    </EmailConfig>
+    <UnionPayConfig Include="UnionPay">
+      <sdksignCertpath></sdksignCertpath>
+      <sdksignCertpwd></sdksignCertpwd>
+      <sdksignCerttype></sdksignCerttype>
+      <sdkencryptCertpath></sdkencryptCertpath>
+      <sdkvalidateCertdir></sdkvalidateCertdir>
+      <sdkfrontTransUrl></sdkfrontTransUrl>
+      <sdkbackTransUrl></sdkbackTransUrl>
+      <sdksingleQueryUrl></sdksingleQueryUrl>
+      <sdkfileTransUrl></sdkfileTransUrl>
+      <sdkbatTransUrl></sdkbatTransUrl>
+      <sdkcardRequestUrl></sdkcardRequestUrl>
+      <sdkappRequestUrl></sdkappRequestUrl>
+
+      <MERACCOUNT></MERACCOUNT>
+      <MERTRID></MERTRID>
+      <MERTOKENTYPE></MERTOKENTYPE>
+
+      <UnionPayListenerAddress>http://booking-vrent.mcon.net/$(IisUPProxySiteName.Substring(1))</UnionPayListenerAddress>
+
+      <proxyAddress></proxyAddress>
+      <proxyCredentialUserName></proxyCredentialUserName>
+      <proxyCredentialPassword></proxyCredentialPassword>
+    </UnionPayConfig>
+    <ServiceConfig Include="Service">
+      <dataServiceAddress>http://$(DataAccessServiceHost)/DataService.svc</dataServiceAddress>
+      <fapiaoServiceAddress>http://$(DataAccessServiceHost)/FapiaoPreferenceService.svc</fapiaoServiceAddress>
+      <paymentServiceAddress>http://$(DataAccessServiceHost)/PaymentService.svc</paymentServiceAddress>
+      <termsConditionServiceAddress>http://$(DataAccessServiceHost)/TermsConditionService.svc</termsConditionServiceAddress>
+      <accountingServiceAddress>http://$(DataAccessServiceHost)/AccountingService.svc</accountingServiceAddress>
+      <bigFileServiceAddress>http://$(DataAccessServiceHost)/BigFileService.svc</bigFileServiceAddress>
+      <kemasAuthService></kemasAuthService>
+      <kemasCatalogService></kemasCatalogService>
+      <kemasConfigService></kemasConfigService>
+      <kemasConfigService2></kemasConfigService2>
+      <kemasReservationService></kemasReservationService>
+      <kemasReservationService2></kemasReservationService2>
+      <kemasUserService></kemasUserService>
+      <kemasUserService2></kemasUserService2>
+    </ServiceConfig>
+    <OtherConfig Include="Other">
+      <compilationDebug>false</compilationDebug>
+      <wcfServiceDebug>false</wcfServiceDebug>
+      <logProxyFileName>Proxy_$(LogFileSuffix).txt</logProxyFileName>
+      <logDataAccessProxyFileName>DataAccessProxy_$(LogFileSuffix).txt</logDataAccessProxyFileName>
+      <logEmailFileName>Email_$(LogFileSuffix).txt</logEmailFileName>
+      <logUnionPayFileName>UnionPay_$(LogFileSuffix).txt</logUnionPayFileName>
+      <!--<logUPListenerFileName>UPListener.txt</logUPListenerFileName>-->
+      <dataBaseConnectString>server=172.21.216.21%3Bdatabase=$(DataBaseName)%3Buid=sa%3Bpwd=H2yAts77</dataBaseConnectString>
+      <directoryBrowse>false</directoryBrowse>
+      <logErrorEnabled>true</logErrorEnabled>
+      <logDebugEnabled>true</logDebugEnabled>
+      <showStackTrace>true</showStackTrace>
+    </OtherConfig>
+  </ItemGroup>
+
+  <!--<UsingTask TaskName="TaskCurrentDate.CurrentDate"
+      AssemblyFile="TaskCurrentDate.dll"/>-->
+  <Target Name="BeforeBackup">
+    <!--<CurrentDate>
+      <Output TaskParameter="CDate" PropertyName="TaskTime"/>
+    </CurrentDate>-->
+
+    <CreateProperty
+         Value="$(BackupCommandProxy) $(AuthenticationParam)" Condition="$(AuthenticationParam) != ''">
+      <Output
+          TaskParameter="Value"
+          PropertyName="BackupCommandProxy" />
+    </CreateProperty>
+
+    <CreateProperty
+        Value="$(BackupCommandDAProxy) $(AuthenticationParam)" Condition="$(AuthenticationParam) != ''">
+      <Output
+          TaskParameter="Value"
+          PropertyName="BackupCommandDAProxy" />
+    </CreateProperty>
+
+    <CreateProperty
+        Value="$(BackupCommandUPProxy) $(AuthenticationParam)" Condition="$(AuthenticationParam) != ''">
+      <Output
+          TaskParameter="Value"
+          PropertyName="BackupCommandUPProxy" />
+    </CreateProperty>
+  </Target>
+
+  <Target Name="Backup" DependsOnTargets="BeforeBackup">
+    <MakeDir
+         Directories="$(BackupRootProxy)$(DeployIisAppPathProxy)" Condition="!Exists('$(BackupRootProxy)$(DeployIisAppPathProxy)')"/>
+    <MakeDir
+        Directories="$(BackupRootDAProxy)$(DeployIisAppPathDAProxy)" Condition="!Exists('$(BackupRootDAProxy)$(DeployIisAppPathDAProxy)')"/>
+    <MakeDir
+        Directories="$(BackupRootUPProxy)$(DeployIisAppPathUPProxy)" Condition="!Exists('$(BackupRootUPProxy)$(DeployIisAppPathUPProxy)')"/>
+
+    <Exec Command="$(BackupCommandProxy)" ContinueOnError="true"/>
+    <Exec Command="$(BackupCommandDAProxy)" ContinueOnError="true"/>
+    <Exec Command="$(BackupCommandUPProxy)" ContinueOnError="true"/>
+  </Target>
+
+  <Target Name="BuildConfig">
+    <Message Text="Starting to config proxy web.config"></Message>
+    <!-- Endpoint -->
+    <Message Text="Set BasicHttpBinding_IDataService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_IDataService']/@address"
+      Value="%(ServiceConfig.dataServiceAddress)">
+    </XmlPoke>
+    <Message Text="Set BasicHttpBinding_IFapiaoPreferenceService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_IFapiaoPreferenceService']/@address"
+      Value="%(ServiceConfig.fapiaoServiceAddress)">
+    </XmlPoke>
+    <Message Text="Set KemasPort..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasPort']/@address"
+      Value="%(ServiceConfig.kemasAuthService)">
+    </XmlPoke>
+    <Message Text="Set KemasPort1..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasPort1']/@address"
+      Value="%(ServiceConfig.kemasCatalogService)">
+    </XmlPoke>
+    <Message Text="Set KemasPort2..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasPort2']/@address"
+      Value="%(ServiceConfig.kemasConfigService)">
+    </XmlPoke>
+    <Message Text="Set KemasConfigPort2..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasConfigPort2']/@address"
+      Value="%(ServiceConfig.kemasConfigService2)">
+    </XmlPoke>
+    <Message Text="Set KemasPort3..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasPort3']/@address"
+      Value="%(ServiceConfig.kemasReservationService)">
+    </XmlPoke>
+    <Message Text="Set kemasPort2..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='kemasPort2']/@address"
+      Value="%(ServiceConfig.kemasReservationService2)">
+    </XmlPoke>
+    <Message Text="Set KemasPort4..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasPort4']/@address"
+      Value="%(ServiceConfig.kemasUserService)">
+    </XmlPoke>
+    <Message Text="Set KemasUser2Port..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='KemasUser2Port']/@address"
+      Value="%(ServiceConfig.kemasUserService2)">
+    </XmlPoke>
+    <Message Text="Set BasicHttpBinding_IPaymentService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_IPaymentService']/@address"
+      Value="%(ServiceConfig.paymentServiceAddress)">
+    </XmlPoke>
+    <Message Text="Set BasicHttpBinding_ITermsConditionService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_ITermsConditionService']/@address"
+      Value="%(ServiceConfig.termsConditionServiceAddress)">
+    </XmlPoke>
+    <Message Text="Set BasicHttpBinding_IAccountingService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_IAccountingService']/@address"
+      Value="%(ServiceConfig.accountingServiceAddress)">
+    </XmlPoke>
+
+    <Message Text="Set BasicHttpBinding_IBigFileReceiverService..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Client.config"
+      Query="//client/endpoint[@name='BasicHttpBinding_IBigFileReceiverService']/@address"
+      Value="%(ServiceConfig.bigFileServiceAddress)">
+    </XmlPoke>
+    <!-- Other -->
+    <Message Text="Set directoryBrowse..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Web.config"
+      Query="//directoryBrowse/@enabled"
+      Value="%(OtherConfig.directoryBrowse)">
+    </XmlPoke>
+    <Message Text="Set serviceDebug..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Behaviors.config"
+      Query="//behaviors/serviceBehaviors/behavior/serviceDebug/@includeExceptionDetailInFaults"
+      Value="%(OtherConfig.wcfServiceDebug)">
+    </XmlPoke>
+    <Message Text="Set compilation..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Web.config"
+      Query="//compilation/@debug"
+      Value="%(OtherConfig.compilationDebug)">
+    </XmlPoke>
+    <Message Text="Set VwfscnLog..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\VwfscnLog\VwfscnLog.config"
+      Query="//VwfscnLog/listeners/add[@name='textListener']/@fileName"
+      Value="%(OtherConfig.logProxyFileName)">
+    </XmlPoke>
+
+    <Message Text="Set Email log..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\VwfscnLog\VwfscnEmailLog.config"
+      Query="//VwfscnLog_Email/listeners/add[@name='textListener']/@fileName"
+      Value="%(OtherConfig.logEmailFileName)">
+    </XmlPoke>
+    
+    <Message Text="Set logErrorEnabled..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Behaviors.config"
+      Query="//VrentBehaviorExtention/@logErrorEnabled"
+      Value="%(OtherConfig.logErrorEnabled)">
+    </XmlPoke>
+    <Message Text="Set logDebugEnabled..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Behaviors.config"
+      Query="//VrentBehaviorExtention/@logDebugEnabled"
+      Value="%(OtherConfig.logDebugEnabled)">
+    </XmlPoke>
+    <Message Text="Set showStackTrace..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathProxy)Config\ServiceModel\Behaviors.config"
+      Query="//VrentBehaviorExtention/@showStackTrace"
+      Value="%(OtherConfig.showStackTrace)">
+    </XmlPoke>
+
+    <Message Text="---------------------------------------------"></Message>
+    <Message Text="Starting to config dataAccessProxy web.config"></Message>
+    <!-- Email -->
+    <Message Text="Set SendMailHost..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/host/@address"
+      Value="%(EmailConfig.SendMailHost)">
+    </XmlPoke>
+    <Message Text="Set SendMailFrom..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/host/@from"
+      Value="%(EmailConfig.SendMailFrom)">
+    </XmlPoke>
+    <!--<Message Text="Set SendMailFromPwd..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Web.config"
+      Query="//appSettings/add[@key='SendMailFromPwd']/@value"
+      Value="%(EmailConfig.SendMailFromPwd)">
+    </XmlPoke>-->
+    <Message Text="Set SendMailWay..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/host/@async"
+      Value="%(EmailConfig.SendMailWay)">
+    </XmlPoke>
+    <Message Text="Set ServiceCenterEmail..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='SC']/address[1]/@value"
+      Value="%(EmailConfig.ServiceCenterEmail1)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='SC']/address[2]/@value"
+      Value="%(EmailConfig.ServiceCenterEmail2)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='SC']/address[3]/@value"
+      Value="%(EmailConfig.ServiceCenterEmail3)">
+    </XmlPoke>
+    <Message Text="Set EmailTemplatePackage..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/@templateRootPath"
+      Value="%(EmailConfig.EmailTemplatePackage)">
+    </XmlPoke>
+    <Message Text="Set TestUser..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='TestUser']/address[1]/@value"
+      Value="%(EmailConfig.TestUser1)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='TestUser']/address[2]/@value"
+      Value="%(EmailConfig.TestUser2)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='TestUser']/address[3]/@value"
+      Value="%(EmailConfig.TestUser3)">
+    </XmlPoke>
+    <Message Text="Set VRent Manager..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='VM']/address[1]/@value"
+      Value="%(EmailConfig.VRentManagerEmail1)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='VM']/address[2]/@value"
+      Value="%(EmailConfig.VRentManagerEmail2)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='VM']/address[3]/@value"
+      Value="%(EmailConfig.VRentManagerEmail3)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='DN_Internal']/address[1]/@value"
+      Value="%(EmailConfig.DebitNoteEmail1)">
+    </XmlPoke>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VRentEmail\VRentEmail.config"
+      Query="//VRentEmail/addressGroups/addresses[@name='DN_Internal']/address[2]/@value"
+      Value="%(EmailConfig.DebitNoteEmail2)">
+    </XmlPoke>
+    <!-- UnionPay -->
+    <Message Text="Set sdk.signCert.path..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.signCert.path']/@value"
+      Value="%(UnionPayConfig.sdksignCertpath)">
+    </XmlPoke>
+    <Message Text="Set sdk.signCert.pwd..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.signCert.pwd']/@value"
+      Value="%(UnionPayConfig.sdksignCertpwd)">
+    </XmlPoke>
+    <Message Text="Set sdk.signCert.type..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.signCert.type']/@value"
+      Value="%(UnionPayConfig.sdksignCerttype)">
+    </XmlPoke>
+    <Message Text="Set sdk.encryptCert.path..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.encryptCert.path']/@value"
+      Value="%(UnionPayConfig.sdkencryptCertpath)">
+    </XmlPoke>
+    <Message Text="Set sdk.validateCert.dir..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.validateCert.dir']/@value"
+      Value="%(UnionPayConfig.sdkvalidateCertdir)">
+    </XmlPoke>
+    <Message Text="Set sdk.frontTransUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.frontTransUrl']/@value"
+      Value="%(UnionPayConfig.sdkfrontTransUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.backTransUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.backTransUrl']/@value"
+      Value="%(UnionPayConfig.sdkbackTransUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.singleQueryUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.singleQueryUrl']/@value"
+      Value="%(UnionPayConfig.sdksingleQueryUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.fileTransUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.fileTransUrl']/@value"
+      Value="%(UnionPayConfig.sdkfileTransUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.batTransUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.batTransUrl']/@value"
+      Value="%(UnionPayConfig.sdkbatTransUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.cardRequestUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.cardRequestUrl']/@value"
+      Value="%(UnionPayConfig.sdkcardRequestUrl)">
+    </XmlPoke>
+    <Message Text="Set sdk.appRequestUrl..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='sdk.appRequestUrl']/@value"
+      Value="%(UnionPayConfig.sdkappRequestUrl)">
+    </XmlPoke>
+    <Message Text="Set MERACCOUNT..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='MERACCOUNT']/@value"
+      Value="%(UnionPayConfig.MERACCOUNT)">
+    </XmlPoke>
+    <Message Text="Set MERTRID..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='MERTRID']/@value"
+      Value="%(UnionPayConfig.MERTRID)">
+    </XmlPoke>
+    <Message Text="Set MERTOKENTYPE..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='MERTOKENTYPE']/@value"
+      Value="%(UnionPayConfig.MERTOKENTYPE)">
+    </XmlPoke>
+    <Message Text="Set UnionPayListenerAddress..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\AppSettings\appSettings.config"
+      Query="//appSettings/add[@key='UnionPayListenerAddress']/@value"
+      Value="%(UnionPayConfig.UnionPayListenerAddress)">
+    </XmlPoke>
+    <!-- Other -->
+    <Message Text="Set directoryBrowse..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Web.config"
+      Query="//directoryBrowse/@enabled"
+      Value="%(OtherConfig.directoryBrowse)">
+    </XmlPoke>
+    <Message Text="Set serviceDebug..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\ServiceModel\Behaviors.config"
+      Query="//behaviors/serviceBehaviors/behavior/serviceDebug/@includeExceptionDetailInFaults"
+      Value="true">
+    </XmlPoke>
+    <Message Text="Set compilation..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Web.config"
+      Query="//compilation/@debug"
+      Value="%(OtherConfig.compilationDebug)">
+    </XmlPoke>
+    <Message Text="Set VwfscnLog..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VwfscnLog\VwfscnLog.config"
+      Query="//VwfscnLog/listeners/add[@name='textListener']/@fileName"
+      Value="%(OtherConfig.logDataAccessProxyFileName)">
+    </XmlPoke>
+
+    <Message Text="Set Email log..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VwfscnLog\VwfscnEmailLog.config"
+      Query="//VwfscnLog_Email/listeners/add[@name='textListener']/@fileName"
+      Value="%(OtherConfig.logEmailFileName)">
+    </XmlPoke>
+
+    <Message Text="Set UnionPay log..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\VwfscnLog\VwfscnPayLog.config"
+      Query="//VwfscnLog_Pay/listeners/add[@name='textListener']/@fileName"
+      Value="%(OtherConfig.logUnionPayFileName)">
+    </XmlPoke>
+    
+    <Message Text="Set ConnectString..."></Message>
+    <XmlPoke
+      XmlInputPath="$(ProjectPathDAProxy)Config\Connection\connectionStrings.config"
+      Query="//connectionStrings/add[@name='SQLConnString']/@connectionString"
+      Value="%(OtherConfig.dataBaseConnectString)">
+    </XmlPoke>
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="BuildConfig">
+    <MSBuild Projects="$(ProjectPathProxy)$(ProjectFileProxy)" Properties="Configuration=Release;VisualStudioVersion=$(OverrideVSVersion);PackageLocation=$(PackageLocationRootProxy)$(PackageProxyZip).zip;DebugType=full;DebugSymbols=true;Optimize=true;DeployIisAppPath=$(DeployIisAppPathProxy)" ToolsVersion="$(MSBuildToolsVersion)" Targets="Package"/>
+    <MSBuild Projects="$(ProjectPathDAProxy)$(ProjectFileDAProxy)" Properties="Configuration=Release;VisualStudioVersion=$(OverrideVSVersion);PackageLocation=$(PackageLocationRootDAProxy)$(PackageDAProxyZip).zip;DebugType=full;DebugSymbols=true;Optimize=true;DeployIisAppPath=$(DeployIisAppPathDAProxy)" ToolsVersion="$(MSBuildToolsVersion)" Targets="Package"/>
+    <!--<MSBuild Projects="$(ProjectPathUPProxy)$(ProjectFileUPProxy)" Properties="Configuration=Release;VisualStudioVersion=$(OverrideVSVersion);PackageLocation=$(PackageLocationRootUPProxy)$(PackageUPProxyZip).zip;DebugType=none;Optimize=true;DeployIisAppPath=$(DeployIisAppPathUPProxy)" ToolsVersion="$(MSBuildToolsVersion)" Targets="Package"/>-->
+  </Target>
+
+  <Target Name="BeforeDeploy" DependsOnTargets="Build">
+    <Exec Command="$(DeployCommandProxy)" />
+
+    <Exec Command="$(DeployCommandDAProxy)" />
+
+    <Exec Command="$(DeployCommandUPProxy)" />
+  </Target>
+
+  <Target Name="Deploy" DependsOnTargets="Backup;BeforeDeploy">
+    <Exec Command="$(PackageLocationRootProxy)$(PackageProxyZip)$(DeployCommandSuffix) /y" />
+    <Exec Command="$(PackageLocationRootDAProxy)$(PackageDAProxyZip)$(DeployCommandSuffix) /y" />
+
+    <Exec Command="VRentCopyApp.bat $(DeployIisAppPathProxy) $(DeployIisAppPathUPProxy)"></Exec>
+    <!--<Exec Command="$(PackageLocationRootUPProxy)$(PackageUPProxyZip)$(DeployCommandSuffix) /y" />-->
+    <MSBuild Projects="$(ProjectPathScheduleJob)$(ProjectFileScheduleJob)"
+             Properties="Configuration=Release;VisualStudioVersion=$(OverrideVSVersion);DebugType=none;Optimize=true;OutDir=$(PackageLocationRootScheduleJob)"
+             ToolsVersion="$(MSBuildToolsVersion)" Targets="ReBuild" ContinueOnError="true"></MSBuild>
+
+    <MSBuild Projects="$(ProjectPathScheduleJobListener)$(ProjectFileScheduleJobListener)"
+             Properties="Configuration=Release;VisualStudioVersion=$(OverrideVSVersion);DebugType=none;Optimize=true;OutDir=$(PackageLocationRootScheduleJob)"
+             ToolsVersion="$(MSBuildToolsVersion)" Targets="ReBuild" ContinueOnError="true"></MSBuild>
+
+  </Target>
+
+  <Target Name="CopyFile" AfterTargets="Deploy">
+    <Exec Command="xcopy $([System.IO.Directory]::GetParent($(EmailPackagePath))) %(EmailConfig.EmailTemplatePackage) /E /Y" ContinueOnError="true"></Exec>
+    <Exec Command="xcopy $([System.IO.Directory]::GetParent($(UPCertsTestPath))) %(UnionPayConfig.sdkvalidateCertdir) /E /Y" ContinueOnError="true"></Exec>
+
+    <!--ReInstall job-->
+    <Exec Command="net stop $(ScheduleJobServiceName)" ContinueOnError="true"></Exec>
+    <Exec Command="xcopy $([System.IO.Directory]::GetParent($(PackageLocationRootScheduleJob))) $(ScheduleJobPath) /E /Y" ContinueOnError="true"></Exec>
+    <Exec Command="$(InstallScheduleJob) $(MSBuildPathDefined) $(ScheduleJobPath)VRentDJ.exe" ContinueOnError="true"></Exec>
+  </Target>
+</Project>
